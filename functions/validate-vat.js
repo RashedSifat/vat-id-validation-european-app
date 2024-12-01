@@ -5,12 +5,28 @@ const client = new vies();
 exports.handler = async (event) => {
   console.log('Incoming request:', event);
 
+  // Handle preflight (OPTIONS) request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+      body: '',
+    };
+  }
+
   try {
     const { vatId } = JSON.parse(event.body);
 
     if (!vatId) {
       return {
         statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         body: JSON.stringify({ error: 'VAT ID is required' }),
       };
     }
