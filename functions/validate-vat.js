@@ -1,57 +1,59 @@
-const { checkVAT } = require('node-vat');
+import vies from 'vies';
+
+const client = new vies();
 
 exports.handler = async (event) => {
-    // Handle CORS preflight (OPTIONS) requests
-    if (event.httpMethod === 'OPTIONS') {
-        return {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
-            },
-            body: '',
-        };
+  console.log('Incoming request:', event);
+
+  try {
+    const { vatId } = JSON.parse(event.body);
+
+    if (!vatId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'VAT ID is required' }),
+      };
     }
 
-    try {
-        const { vatId } = JSON.parse(event.body);
+    const countryCode = vatId.slice(0, 2);
+    const vatNumber = vatId.slice(2);
 
-        if (!vatId) {
-            return {
-                statusCode: 400,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                },
-                body: JSON.stringify({ error: 'VAT ID is required.' }),
-            };
-        }
+    console.log('Validating VAT ID:', { countryCode, vatNumber });
 
-        // Use node-vat to validate the VAT ID
-        const result = await checkVAT(vatId);
+    const result = await client.validateVAT({
+      countryCode,
+      vatNumber,
+    });
 
-        return {
-            statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                valid: result.valid,
-                name: result.name || 'No name available',
-                address: result.address || 'No address available',
-            }),
-        };
-    } catch (error) {
-        console.error('Error validating VAT:', error);
-
-        return {
-            statusCode: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ error: 'Failed to validate VAT. Please try again later.' }),
-        };
+    if (result.valid) {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          valid: true,
+          name: result.traderName || 'N/A',
+          address: result.traderAddress || 'N/A',
+        }),
+      };
+    } else {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({ valid: false }),
+      };
     }
+  } catch (error) {
+    console.error('Error validating VAT:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ error: 'Internal server error' }),
+    };
+  }
 };
