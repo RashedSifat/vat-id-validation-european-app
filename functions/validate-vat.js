@@ -1,32 +1,48 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-    const { countryCode, vatNumber } = JSON.parse(event.body);
+  const headers = {
+    'Access-Control-Allow-Origin': '*', // Allow all origins
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', // Allowed methods
+    'Access-Control-Allow-Headers': 'Content-Type', // Allowed headers
+  };
 
-    if (!countryCode || !vatNumber) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Country code and VAT number are required.' }),
-        };
+  // Handle CORS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
+  }
+
+  try {
+    const { vatId } = JSON.parse(event.body);
+
+    if (!vatId) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'VAT ID is required.' }),
+      };
     }
 
-    try {
-        const response = await fetch(`https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${countryCode}/vat/${vatNumber}`);
+    const countryCode = vatId.slice(0, 2); // Extract country code
+    const vatNumber = vatId.slice(2); // Extract VAT number
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch data from the VIES API.');
-        }
+    const response = await fetch(`https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${countryCode}/vat/${vatNumber}`);
+    const data = await response.json();
 
-        const data = await response.json();
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify(data),
-        };
-    } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message }),
-        };
-    }
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(data),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: error.message }),
+    };
+  }
 };
