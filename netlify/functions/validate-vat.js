@@ -23,6 +23,11 @@ exports.handler = async (event) => {
     // Return the API result
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "https://eontechbd.myshopify.com", // Allow your Shopify store
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Specify allowed methods
+        "Access-Control-Allow-Headers": "Content-Type", // Specify allowed headers
+      },
       body: JSON.stringify({
         isValid: data.isValid,
         name: data.name,
