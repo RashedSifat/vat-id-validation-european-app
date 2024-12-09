@@ -20,13 +20,22 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
+    if (event.httpMethod === "OPTIONS") {
+      return {
+        statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "https://eontechbd.myshopify.com",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      };
+    }
+
     // Return the API result
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "https://eontechbd.myshopify.com", // Allow your Shopify store
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS", // Specify allowed methods
-        "Access-Control-Allow-Headers": "Content-Type", // Specify allowed headers
+        "Access-Control-Allow-Origin": "https://eontechbd.myshopify.com",
       },
       body: JSON.stringify({
         isValid: data.isValid,
