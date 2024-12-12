@@ -1,0 +1,21 @@
+{
+  "name": "vat-validation",
+  "version": "1.0.0",
+  "description": "A Node.js app for EU VAT validation",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "netlify build"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^3.0.0"
+  },
+  "engines": {
+    "node": "14.x"
+  },
+  "author": "",
+  "license": "MIT"
+}
